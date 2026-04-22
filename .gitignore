@@ -38,3 +38,5 @@ lerna-debug.log*
 .env
 .env.setup.backup.*
 logs/
+
+docker-compose.yaml
