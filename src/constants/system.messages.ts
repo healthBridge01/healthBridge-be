@@ -26,3 +26,11 @@ export const VALIDATION_ERROR = 'validation error';
 
 // 2FA
 export const MFA_SETUP_SUCCESS = '2fa setup initialized';
+
+// Profile
+export const USER_PROFILE_UPDATED = 'user profile updated';
+export const AVATAR_UPDATED = 'avatar updated';
+export const ACCOUNT_DELETED = 'account deleted';
+export const USER_PROFILE_RETRIEVED = 'user profile retrieved';
+
+export const NOTIFICATION_SETTINGS_UPDATED = 'notification settings updated';

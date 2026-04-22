@@ -11,6 +11,7 @@ import { LoggerModule } from './common/logger.module';
 import configuration from './config/config';
 import { LoggingInterceptor } from './middleware/logging.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AuthModule } from './modules/auth/auth.module';
       }),
     }),
     AuthModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [
