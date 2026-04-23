@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateUserAndAuthTables1770158195038
-  implements MigrationInterface
-{
+export class CreateUserAndAuthTables1770158195038 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
@@ -22,11 +20,19 @@ export class CreateUserAndAuthTables1770158195038
         "role" character varying NOT NULL DEFAULT 'PATIENT',
         "is_active" boolean NOT NULL DEFAULT true,
         "is_verified" boolean NOT NULL DEFAULT false,
+        "verification_code" character varying,
+        "verification_code_expires_at" TIMESTAMP WITH TIME ZONE,
         "google_id" character varying,
         "reset_token" character varying,
         "reset_token_expiry" TIMESTAMP WITH TIME ZONE,
+        "profileId" uuid,
         CONSTRAINT "PK_users_id" PRIMARY KEY ("id"),
-        CONSTRAINT "UQ_users_email" UNIQUE ("email")
+        CONSTRAINT "UQ_users_email" UNIQUE ("email"),
+        CONSTRAINT "UQ_users_profileId" UNIQUE ("profileId"),
+        CONSTRAINT "FK_users_profileId" FOREIGN KEY ("profileId")
+          REFERENCES "user_profiles"("id")
+          ON DELETE SET NULL
+          ON UPDATE NO ACTION
       );
     `);
 
@@ -42,7 +48,10 @@ export class CreateUserAndAuthTables1770158195038
         "revoked_at" TIMESTAMP WITH TIME ZONE,
         CONSTRAINT "PK_auth_sessions_id" PRIMARY KEY ("id"),
         CONSTRAINT "UQ_auth_sessions_session_id" UNIQUE ("session_id"),
-        CONSTRAINT "FK_auth_sessions_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+        CONSTRAINT "FK_auth_sessions_user_id" FOREIGN KEY ("user_id")
+          REFERENCES "users"("id")
+          ON DELETE CASCADE
+          ON UPDATE NO ACTION
       );
     `);
 
@@ -57,7 +66,10 @@ export class CreateUserAndAuthTables1770158195038
         "backup_codes" text array,
         CONSTRAINT "PK_user_2fa_id" PRIMARY KEY ("id"),
         CONSTRAINT "UQ_user_2fa_user_id" UNIQUE ("user_id"),
-        CONSTRAINT "FK_user_2fa_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        CONSTRAINT "FK_user_2fa_user_id" FOREIGN KEY ("user_id")
+          REFERENCES "users"("id")
+          ON DELETE NO ACTION
+          ON UPDATE NO ACTION
       );
     `);
   }
@@ -66,5 +78,7 @@ export class CreateUserAndAuthTables1770158195038
     await queryRunner.query('DROP TABLE IF EXISTS "user_2fa";');
     await queryRunner.query('DROP TABLE IF EXISTS "auth_sessions";');
     await queryRunner.query('DROP TABLE IF EXISTS "users";');
+    await queryRunner.query(`DROP TABLE IF EXISTS "notification_preferences";`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "user_profiles";`);
   }
 }

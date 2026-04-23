@@ -45,3 +45,15 @@ export const TIME_SLOT_ALREADY_BOOKED = 'time slot already booked';
 
 // 2FA
 export const MFA_SETUP_SUCCESS = '2fa setup initialized';
+
+// Profile
+export const USER_PROFILE_UPDATED = 'user profile updated';
+export const AVATAR_UPDATED = 'avatar updated';
+export const ACCOUNT_DELETED = 'account deleted';
+export const USER_PROFILE_RETRIEVED = 'user profile retrieved';
+export const USER_PROFILE_NOT_FOUND = 'User profile not found';
+export const NO_FILE_FOUND = 'No file provided';
+export const FILE_TYPE_NOT_ALLOWED =
+  'Only image files (JPEG, PNG, WEBP, GIF) are allowed';
+
+export const NOTIFICATION_SETTINGS_UPDATED = 'notification settings updated';

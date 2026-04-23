@@ -13,7 +13,9 @@ import { LoggingInterceptor } from './middleware/logging.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { BookingModule } from './modules/booking/booking.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { ProfessionalModule } from './modules/professional/professional.module';
+import { ProfileModule } from './modules/profile/profile.module';
 import { SpecialityModule } from './modules/speciality/speciality.module';
 
 @Module({
@@ -44,6 +46,8 @@ import { SpecialityModule } from './modules/speciality/speciality.module';
     ProfessionalModule,
     BookingModule,
     ChatModule,
+    ProfileModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [

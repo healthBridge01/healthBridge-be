@@ -1,4 +1,6 @@
-import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+
+import { UserProfile } from 'src/modules/profile/entities/profile.entity';
 
 import { BaseEntity } from '../../../entities/base-entity';
 import { AuthSession } from '../../auth/entities/auth.entity';
@@ -21,6 +23,13 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   middle_name?: string | null;
+
+  @OneToOne(() => UserProfile, (profile) => profile.user, {
+    cascade: true,
+    eager: false,
+  })
+  @JoinColumn()
+  profile: UserProfile;
 
   @Column({ nullable: true })
   gender?: string | null;
