@@ -1,6 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -11,6 +12,7 @@ import { GetProfileDtoResponse } from '../dto/get-profile.dto';
 
 export const GetProfileDoc = () =>
   applyDecorators(
+    ApiBearerAuth(),
     ApiOperation({ summary: 'Get user profile' }),
     ApiOkResponse({
       description: sysMsg.USER_PROFILE_RETRIEVED,

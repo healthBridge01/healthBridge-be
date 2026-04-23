@@ -12,7 +12,9 @@ export class UserProfile extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToOne(() => NotificationPreferences, (np) => np.user, { cascade: true })
+  @OneToOne(() => NotificationPreferences, (np) => np.userProfile, {
+    cascade: true,
+  })
   notificationPreferences: NotificationPreferences;
 
   @Column()

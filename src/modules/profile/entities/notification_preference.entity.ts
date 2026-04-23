@@ -1,17 +1,14 @@
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 
-import { User } from 'src/modules/user/entities/user.entity';
-
 import { BaseEntity } from '../../../entities/base-entity';
+
+import { UserProfile } from './profile.entity';
 
 @Entity('notification_preferences')
 export class NotificationPreferences extends BaseEntity {
-  @OneToOne(() => User)
-  @JoinColumn()
-  user: User;
-
-  @Column({ default: true })
-  userId: string;
+  @OneToOne(() => UserProfile, (profile) => profile.notificationPreferences)
+  @JoinColumn({ name: 'user_profile_id' })
+  userProfile: UserProfile;
 
   @Column({ default: true })
   showNotification: boolean;

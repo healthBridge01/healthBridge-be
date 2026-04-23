@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import * as sysMsg from '../../constants/system.messages';
+import { User } from '../user/entities/user.entity';
 
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { NotificationPreferences } from './entities/notification_preference.entity';
@@ -11,6 +14,8 @@ export class ProfileService {
   constructor(
     @InjectRepository(UserProfile)
     private readonly profileRepository: Repository<UserProfile>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(NotificationPreferences)
     private readonly notificationPreferenceRepository: Repository<NotificationPreferences>,
   ) {}
@@ -20,12 +25,12 @@ export class ProfileService {
     preferences: Partial<NotificationPreferences>,
   ) {
     let existing = await this.notificationPreferenceRepository.findOne({
-      where: { user: { id: userId } },
+      where: { userProfile: { user: { id: userId } } },
     });
 
     if (!existing) {
       existing = this.notificationPreferenceRepository.create({
-        userId,
+        userProfile: { user: { id: userId } },
         ...preferences,
       });
     } else {
@@ -35,8 +40,20 @@ export class ProfileService {
     return this.notificationPreferenceRepository.save(existing);
   }
 
-  findById(userId: string) {
-    return this.profileRepository.findOneBy({ user: { id: userId } });
+  async findById(userId: string) {
+    const userNotificationPreference =
+      await this.notificationPreferenceRepository.findOne({
+        where: { userProfile: { user: { id: userId } } },
+      });
+
+    const userProfile = await this.profileRepository.findOneBy({
+      user: { id: userId },
+    });
+
+    return {
+      ...userNotificationPreference,
+      ...userProfile,
+    };
   }
 
   update(userId: string, dto: UpdateProfileDto) {
@@ -44,13 +61,26 @@ export class ProfileService {
   }
 
   updateAvatar(userId: string, file: Express.Multer.File) {
+    console.log(file);
+
     return this.profileRepository.update(
       { user: { id: userId } },
       { avatarUrl: file.filename },
     );
   }
 
-  softDelete(userId: string) {
-    return this.profileRepository.softDelete({ user: { id: userId } });
+  async softDelete(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['profile', 'profile.notificationPreferences'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(sysMsg.USER_NOT_FOUND);
+    }
+
+    await this.userRepository.softDelete(userId);
+
+    return { message: sysMsg.ACCOUNT_DELETED };
   }
 }
