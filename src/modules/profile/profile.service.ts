@@ -1,8 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  MAX_PICTURE_UPLOAD_SIZE,
+} from 'src/constants/file-upload.constants';
+
 import * as sysMsg from '../../constants/system.messages';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { User } from '../user/entities/user.entity';
 
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -18,6 +28,7 @@ export class ProfileService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(NotificationPreferences)
     private readonly notificationPreferenceRepository: Repository<NotificationPreferences>,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async updateNotificationPreferences(
@@ -60,13 +71,52 @@ export class ProfileService {
     return this.profileRepository.update({ user: { id: userId } }, dto);
   }
 
-  updateAvatar(userId: string, file: Express.Multer.File) {
-    console.log(file);
+  async updateAvatar(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException(sysMsg.NO_FILE_FOUND);
+    }
 
-    return this.profileRepository.update(
-      { user: { id: userId } },
-      { avatarUrl: file.filename },
+    if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException(sysMsg.FILE_TYPE_NOT_ALLOWED);
+    }
+
+    if (file.size > MAX_PICTURE_UPLOAD_SIZE) {
+      throw new BadRequestException('File size exceeds 5MB limit');
+    }
+
+    const profile = await this.profileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+
+    if (!profile) {
+      throw new NotFoundException(sysMsg.USER_PROFILE_NOT_FOUND);
+    }
+
+    if (profile.avatarUrl) {
+      const oldPublicUrl = this.extractPublicIdFromUrl(profile.avatarUrl);
+      if (oldPublicUrl) {
+        await this.cloudinaryService.deleteImage(oldPublicUrl);
+      }
+    }
+
+    const uploadResult = await this.cloudinaryService.uploadImage(
+      file,
+      'profile_avatars',
     );
+
+    profile.avatarUrl = uploadResult.secure_url;
+    await this.profileRepository.save(profile);
+
+    return profile;
+  }
+
+  private extractPublicIdFromUrl(url: string): string | null {
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/);
+    if (match && match[1]) {
+      return match[1];
+    }
+    return null;
   }
 
   async softDelete(userId: string) {

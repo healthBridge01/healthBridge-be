@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -12,6 +13,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { ApiTags } from '@nestjs/swagger/dist/decorators/api-use-tags.decorator';
+
+import { MAX_PICTURE_UPLOAD_SIZE } from 'src/constants/file-upload.constants';
 
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -46,12 +49,30 @@ export class ProfileController {
 
   @UpdateProfileAvatar()
   @Post('avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
-  uploadAvatar(
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: MAX_PICTURE_UPLOAD_SIZE },
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+          return cb(
+            new BadRequestException('Only image files are allowed'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadAvatar(
     @CurrentUser() user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.profileService.updateAvatar(user.id, file);
+    const profile = await this.profileService.updateAvatar(user.id, file);
+    return {
+      status_code: 200,
+      message: 'Avatar updated successfully',
+      data: { avatarUrl: profile.avatarUrl },
+    };
   }
 
   @DeleteUserAccountDoc()

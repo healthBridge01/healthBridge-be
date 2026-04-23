@@ -17,7 +17,11 @@ export default () => ({
     name: process.env.DB_NAME,
     ssl: process.env.DB_SSL === 'true',
   },
-
+  cloudinary: {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  },
   mail: {
     mailer: process.env.MAIL_MAILER,
     host: process.env.MAIL_HOST,
